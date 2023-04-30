@@ -266,8 +266,8 @@ int main(int argc, char ** argv) {
 
         fprintf(stderr, "%s: interactive mode on.\n", __func__);
 
-        if (params.antiprompt.size()) {
-            for (auto antiprompt : params.antiprompt) {
+        if (!params.antiprompt.empty()) {
+            for (const auto & antiprompt : params.antiprompt) {
                 fprintf(stderr, "Reverse prompt: '%s'\n", antiprompt.c_str());
             }
         }
@@ -376,6 +376,7 @@ int main(int argc, char ** argv) {
                 }
                 n_past += n_eval;
             }
+            // printf("\n                       n_past: %d\n", n_past);
 
             if (embd.size() > 0 && !path_session.empty()) {
                 session_tokens.insert(session_tokens.end(), embd.begin(), embd.end());
@@ -399,6 +400,7 @@ int main(int argc, char ** argv) {
             const int     mirostat        = params.mirostat;
             const float   mirostat_tau    = params.mirostat_tau;
             const float   mirostat_eta    = params.mirostat_eta;
+            const auto &  out_candidates  = params.out_candidates;
             const bool    penalize_nl     = params.penalize_nl;
 
             // optionally save the session on first sample (for faster prompt loading next time)
@@ -463,6 +465,17 @@ int main(int argc, char ** argv) {
                     }
                 }
                 // printf("`%d`", candidates_p.size);
+                if (!out_candidates.empty()) {
+                    std::ofstream out_candidates_file(out_candidates, std::ios::app);
+                    out_candidates_file.write((char*)&id, sizeof(llama_token));
+                    out_candidates_file.write((char*)&candidates_p.size, sizeof(int));
+                    llama_sample_softmax(ctx, &candidates_p);
+                    for (size_t i = 0; i < candidates_p.size; i++) {
+                        out_candidates_file.write((char*)&candidates_p.data[i].id, sizeof(llama_token));
+                        out_candidates_file.write((char*)&candidates_p.data[i].logit, sizeof(float));
+                        out_candidates_file.write((char*)&candidates_p.data[i].p, sizeof(float));
+                    }
+                }
 
                 last_n_tokens.erase(last_n_tokens.begin());
                 last_n_tokens.push_back(id);

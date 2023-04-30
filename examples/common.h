@@ -25,13 +25,13 @@ struct gpt_params {
 
     // sampling parameters
     std::unordered_map<llama_token, float> logit_bias; // logit bias for specific tokens
-    int32_t top_k             = 40;    // <= 0 to use vocab size
-    float   top_p             = 0.95f; // 1.0 = disabled
+    int32_t top_k             = 0;    // <= 0 to use vocab size
+    float   top_p             = 1.00f; // 1.0 = disabled
     float   tfs_z             = 1.00f; // 1.0 = disabled
     float   typical_p         = 1.00f; // 1.0 = disabled
-    float   temp              = 0.80f; // 1.0 = disabled
-    float   repeat_penalty    = 1.10f; // 1.0 = disabled
-    int32_t repeat_last_n     = 64;    // last n tokens to penalize (0 = disable penalty, -1 = context size)
+    float   temp              = 1.00f; // 1.0 = disabled
+    float   repeat_penalty    = 1.00f; // 1.0 = disabled
+    int32_t repeat_last_n     = -1;    // last n tokens to penalize (0 = disable penalty, -1 = context size)
     float   frequency_penalty = 0.00f; // 0.0 = disabled
     float   presence_penalty  = 0.00f; // 0.0 = disabled
     int     mirostat          = 0;     // 0 = disabled, 1 = mirostat, 2 = mirostat 2.0
@@ -41,6 +41,7 @@ struct gpt_params {
     std::string model  = "models/lamma-7B/ggml-model.bin"; // model path
     std::string prompt = "";
     std::string path_session = "";       // path to file for saving/loading model eval state
+    std::string out_candidates = "";     // path to file to stream final token candidates to
     std::string input_prefix = "";       // string to prefix user inputs with
     std::vector<std::string> antiprompt; // string upon seeing which more user input is prompted
 

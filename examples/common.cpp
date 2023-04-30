@@ -69,6 +69,12 @@ bool gpt_params_parse(int argc, char ** argv, gpt_params & params) {
                 break;
             }
             params.path_session = argv[i];
+        } else if (arg == "--out-candidates") {
+            if (++i >= argc) {
+                invalid_param = true;
+                break;
+            }
+            params.out_candidates = argv[i];
         } else if (arg == "-f" || arg == "--file") {
             if (++i >= argc) {
                 invalid_param = true;
