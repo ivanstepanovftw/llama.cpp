@@ -406,12 +406,12 @@ int main(int argc, char ** argv) {
     std::vector<llama_token> embd;
     std::vector<llama_token> embd_guidance;
 
-    // do one empty run to warm up the model
-    {
-        const std::vector<llama_token> tmp = { llama_token_bos(), };
-        llama_eval(ctx, tmp.data(), tmp.size(), 0, params.n_threads);
-        llama_reset_timings(ctx);
-    }
+    // // do one empty run to warm up the model
+    // {
+    //     const std::vector<llama_token> tmp = { llama_token_bos(), };
+    //     llama_eval(ctx, tmp.data(), tmp.size(), 0, params.n_threads);
+    //     llama_reset_timings(ctx);
+    // }
 
     while ((n_remain != 0 && !is_antiprompt) || params.interactive) {
         // predict
@@ -608,22 +608,20 @@ int main(int argc, char ** argv) {
                     // Greedy sampling
                     id = llama_sample_token_greedy(ctx, &candidates_p);
                 } else {
+                    // Temperature sampling
+                    llama_sample_temperature(ctx, &candidates_p, temp);
+                    llama_sample_typical(ctx, &candidates_p, typical_p, 1);
+                    llama_sample_top_k(ctx, &candidates_p, top_k, 1);
+                    llama_sample_tail_free(ctx, &candidates_p, tfs_z, 1);
+                    llama_sample_top_p(ctx, &candidates_p, top_p, 1);
                     if (mirostat == 1) {
                         static float mirostat_mu = 2.0f * mirostat_tau;
                         const int mirostat_m = 100;
-                        llama_sample_temperature(ctx, &candidates_p, temp);
                         id = llama_sample_token_mirostat(ctx, &candidates_p, mirostat_tau, mirostat_eta, mirostat_m, &mirostat_mu);
                     } else if (mirostat == 2) {
                         static float mirostat_mu = 2.0f * mirostat_tau;
-                        llama_sample_temperature(ctx, &candidates_p, temp);
                         id = llama_sample_token_mirostat_v2(ctx, &candidates_p, mirostat_tau, mirostat_eta, &mirostat_mu);
                     } else {
-                        // Temperature sampling
-                        llama_sample_top_k(ctx, &candidates_p, top_k, 1);
-                        llama_sample_tail_free(ctx, &candidates_p, tfs_z, 1);
-                        llama_sample_typical(ctx, &candidates_p, typical_p, 1);
-                        llama_sample_top_p(ctx, &candidates_p, top_p, 1);
-                        llama_sample_temperature(ctx, &candidates_p, temp);
                         id = llama_sample_token(ctx, &candidates_p);
                     }
                 }
